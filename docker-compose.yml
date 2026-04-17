@@ -1,0 +1,24 @@
+services:
+  benni-consumer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: benni-consumer
+    restart: unless-stopped
+    environment:
+      BENNI_DB_NAME: ${BENNI_DB_NAME}
+      BENNI_DB_USER: ${BENNI_DB_USER}
+      BENNI_DB_PASSWORD: ${BENNI_DB_PASSWORD}
+      BENNI_DB_HOST: ${BENNI_DB_HOST:-benni-postgres}
+      BENNI_DB_PORT: ${BENNI_DB_PORT:-5432}
+    ports:
+      - "${API_PORT:-8081}:8081"
+    networks:
+      homeserver_shared:
+        aliases:
+          - benni-consumer
+
+networks:
+  homeserver_shared:
+    external: true
+    name: homeserver_shared
