@@ -6,14 +6,14 @@ services:
     container_name: benni-consumer
     restart: unless-stopped
     environment:
-      BENNI_DB_NAME: ${BENNI_DB_NAME}
-      BENNI_DB_USER: ${BENNI_DB_USER}
-      BENNI_DB_PASSWORD: ${BENNI_DB_PASSWORD}
+      BENNI_DB_NAME: ${BENNI_DB_NAME:?BENNI_DB_NAME is required}
+      BENNI_DB_USER: ${BENNI_DB_USER:?BENNI_DB_USER is required}
+      BENNI_DB_PASSWORD: ${BENNI_DB_PASSWORD:?BENNI_DB_PASSWORD is required}
       BENNI_DB_HOST: ${BENNI_DB_HOST:-benni-postgres}
       BENNI_DB_PORT: ${BENNI_DB_PORT:-5432}
-      FELIX_DB_NAME: ${FELIX_DB_NAME}
-      FELIX_DB_USER: ${FELIX_DB_USER}
-      FELIX_DB_PASSWORD: ${FELIX_DB_PASSWORD}
+      FELIX_DB_NAME: ${FELIX_DB_NAME:?FELIX_DB_NAME is required}
+      FELIX_DB_USER: ${FELIX_DB_USER:?FELIX_DB_USER is required}
+      FELIX_DB_PASSWORD: ${FELIX_DB_PASSWORD:?FELIX_DB_PASSWORD is required}
       FELIX_DB_HOST: ${FELIX_DB_HOST:-felix-postgres}
       FELIX_DB_PORT: ${FELIX_DB_PORT:-5432}
     ports:
