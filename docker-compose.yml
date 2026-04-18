@@ -14,7 +14,7 @@ services:
       FELIX_DB_NAME: ${FELIX_DB_NAME}
       FELIX_DB_USER: ${FELIX_DB_USER}
       FELIX_DB_PASSWORD: ${FELIX_DB_PASSWORD}
-      FELIX_DB_HOST: ${FELIX_DB_HOST:-felix-db-1}
+      FELIX_DB_HOST: ${FELIX_DB_HOST:-felix-postgres}
       FELIX_DB_PORT: ${FELIX_DB_PORT:-5432}
     ports:
       - "${API_PORT:-8081}:8081"
