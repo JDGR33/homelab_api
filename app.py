@@ -109,6 +109,7 @@ def get_currency_last_four_months_data(currency: str):
         """Get all records for a currency from the last four months."""
         query = """
         SELECT
+            MAX(id) AS id,
             UPPER(currency) AS currency,
             AVG(
                 CASE
@@ -136,9 +137,10 @@ def get_currency_last_four_months_data(currency: str):
                 "count": len(rows),
                 "rows": [
                     {
-                        "currency": row[0],
-                        "rate": row[1],
-                        "scrape_date": row[2].isoformat() if row[2] else None,
+                        "id": row[0],
+                        "currency": row[1],
+                        "rate": row[2],
+                        "scrape_date": row[3].isoformat() if row[3] else None,
                     }
                     for row in rows
                 ],
@@ -150,6 +152,7 @@ def get_currency_last_four_months_data(currency: str):
     else:
         query = """
         SELECT
+            MAX(id) AS id,
             AVG(rate_usdt_to_bs) AS avg_rate,
             DATE_TRUNC('day', scraped_at) AS scrape_date
         FROM exchange_rates
@@ -168,9 +171,10 @@ def get_currency_last_four_months_data(currency: str):
                 "count": len(rows),
                 "rows": [
                     {
+                        "id": row[0],
                         "currency": "usdt",
-                        "rate": row[0],
-                        "scrape_date": row[1].isoformat() if row[1] else None,
+                        "rate": row[1],
+                        "scrape_date": row[2].isoformat() if row[2] else None,
                     }
                     for row in rows
                 ],
