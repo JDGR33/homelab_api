@@ -108,11 +108,21 @@ def get_currency_last_four_months_data(currency: str):
     if currency.strip().upper() != "USDT":
         """Get all records for a currency from the last four months."""
         query = """
-        SELECT id, currency, rate, scraped_at
+        SELECT
+            UPPER(currency) AS currency,
+            AVG(
+                CASE
+                    WHEN TRIM(rate) ~ '^-?[0-9]+([.,][0-9]+)?$'
+                    THEN REPLACE(TRIM(rate), ',', '.')::numeric
+                    ELSE NULL
+                END
+            ) AS avg_rate,
+            DATE_TRUNC('day', scraped_at) AS scrape_date
         FROM currency_rates
         WHERE UPPER(currency) = UPPER(%s)
             AND scraped_at >= (CURRENT_DATE - INTERVAL '4 months')
-        ORDER BY scraped_at DESC;
+        GROUP BY UPPER(currency), DATE_TRUNC('day', scraped_at)
+        ORDER BY scrape_date DESC;
         """
 
         try:
@@ -126,10 +136,9 @@ def get_currency_last_four_months_data(currency: str):
                 "count": len(rows),
                 "rows": [
                     {
-                        "id": row[0],
-                        "currency": row[1],
-                        "rate": row[2],
-                        "scraped_at": row[3].isoformat() if row[3] else None,
+                        "currency": row[0],
+                        "rate": row[1],
+                        "scrape_date": row[2].isoformat() if row[2] else None,
                     }
                     for row in rows
                 ],
@@ -140,15 +149,18 @@ def get_currency_last_four_months_data(currency: str):
             )
     else:
         query = """
-        SELECT id, rate_usdt_to_bs, scraped_at
+        SELECT
+            AVG(rate_usdt_to_bs) AS avg_rate,
+            DATE_TRUNC('day', scraped_at) AS scrape_date
         FROM exchange_rates
         WHERE scraped_at >= (CURRENT_DATE - INTERVAL '4 months')
-        ORDER BY scraped_at DESC;"""
+        GROUP BY DATE_TRUNC('day', scraped_at)
+        ORDER BY scrape_date DESC;"""
 
         try:
             with closing(get_connection_felix()) as conn:
                 with conn.cursor() as cur:
-                    cur.execute(query, (currency,))
+                    cur.execute(query)
                     rows = cur.fetchall()
 
             return {
@@ -156,10 +168,9 @@ def get_currency_last_four_months_data(currency: str):
                 "count": len(rows),
                 "rows": [
                     {
-                        "id": row[0],
                         "currency": "usdt",
-                        "rate": row[1],
-                        "scraped_at": row[2].isoformat() if row[2] else None,
+                        "rate": row[0],
+                        "scrape_date": row[1].isoformat() if row[1] else None,
                     }
                     for row in rows
                 ],
