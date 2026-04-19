@@ -105,38 +105,69 @@ def first_five_rows():
 
 
 def get_currency_last_four_months_data(currency: str):
-    """Get all records for a currency from the last four months."""
-    query = """
-    SELECT id, currency, rate, scraped_at
-    FROM currency_rates
-    WHERE UPPER(currency) = UPPER(%s)
-      AND scraped_at >= (CURRENT_DATE - INTERVAL '4 months')
-    ORDER BY scraped_at DESC;
-    """
+    if currency.strip().upper() != "USDT":
+        """Get all records for a currency from the last four months."""
+        query = """
+        SELECT id, currency, rate, scraped_at
+        FROM currency_rates
+        WHERE UPPER(currency) = UPPER(%s)
+            AND scraped_at >= (CURRENT_DATE - INTERVAL '4 months')
+        ORDER BY scraped_at DESC;
+        """
 
-    try:
-        with closing(get_connection_benni()) as conn:
-            with conn.cursor() as cur:
-                cur.execute(query, (currency,))
-                rows = cur.fetchall()
+        try:
+            with closing(get_connection_benni()) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(query, (currency,))
+                    rows = cur.fetchall()
 
-        return {
-            "currency": currency.upper(),
-            "count": len(rows),
-            "rows": [
-                {
-                    "id": row[0],
-                    "currency": row[1],
-                    "rate": row[2],
-                    "scraped_at": row[3].isoformat() if row[3] else None,
-                }
-                for row in rows
-            ],
-        }
-    except Exception as exc:
-        raise HTTPException(
-            status_code=500, detail=f"Benni Database query failed: {exc}"
-        )
+            return {
+                "currency": currency.upper(),
+                "count": len(rows),
+                "rows": [
+                    {
+                        "id": row[0],
+                        "currency": row[1],
+                        "rate": row[2],
+                        "scraped_at": row[3].isoformat() if row[3] else None,
+                    }
+                    for row in rows
+                ],
+            }
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500, detail=f"Benni Database query failed: {exc}"
+            )
+    else:
+        query = """
+        SELECT id, rate_usdt_to_bs, scraped_at
+        FROM exchange_rates
+        WHERE scraped_at >= (CURRENT_DATE - INTERVAL '4 months')
+        ORDER BY scraped_at DESC;"""
+
+        try:
+            with closing(get_connection_felix()) as conn:
+                with conn.cursor() as cur:
+                    cur.execute(query, (currency,))
+                    rows = cur.fetchall()
+
+            return {
+                "currency": currency.upper(),
+                "count": len(rows),
+                "rows": [
+                    {
+                        "id": row[0],
+                        "currency": "usdt",
+                        "rate": row[1],
+                        "scraped_at": row[2].isoformat() if row[2] else None,
+                    }
+                    for row in rows
+                ],
+            }
+        except Exception as exc:
+            raise HTTPException(
+                status_code=500, detail=f"Felix Database query failed: {exc}"
+            )
 
 
 @app.get(
